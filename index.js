@@ -96,6 +96,7 @@ client.on("message", (message) => {
     if (message.author.id !== client.user.id) {
       if (message.channel.name.toLowerCase().includes("ticket")) {
         var channelId = message.channel.id;
+        if (fs.existsSync('./tickets/channelinfo/' + channelId + '.json')) {
         var rawData = fs.readFileSync(
           "./tickets/channelinfo/" + channelId + ".json",
           "utf8"
@@ -115,7 +116,7 @@ client.on("message", (message) => {
             quickEmbed("Response From Staff", message.content, message.author)
           );
         }
-      }
+      }}
     }
   }
 });
