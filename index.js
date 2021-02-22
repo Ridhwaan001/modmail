@@ -1,7 +1,6 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const fs = require("fs");
-const { measureMemory } = require("vm");
 const config = require("./config.json");
 client.login(config.token);
 
@@ -30,7 +29,7 @@ client.on("message", (message) => {
 
 client.on("message", (message) => {
   if (message.channel.type === "dm") {
-    if (message.author.id !== "804658990361214988") {
+    if (message.author.id !== client.user.id) {
       console.log("DM received from " + message.author.tag);
       if (fs.existsSync("./tickets/userinfo/" + message.author.id + ".json")) {
         var raw = fs.readFileSync(
@@ -57,7 +56,6 @@ client.on("message", (message) => {
       } else {
         console.log("ticket not found - Creating");
         var guild = client.guilds.cache.get(config.guild);
-        var categoryID = "803935214921187388";
         guild.channels
           .create("Ticket - " + message.author.tag, {
             parent: config.category,
@@ -95,7 +93,7 @@ client.on("message", (message) => {
 
 client.on("message", (message) => {
   if (message.channel.type !== "dm") {
-    if (message.author.id !== "804658990361214988") {
+    if (message.author.id !== client.user.id) {
       if (message.channel.name.toLowerCase().includes("ticket")) {
         var channelId = message.channel.id;
         var rawData = fs.readFileSync(
