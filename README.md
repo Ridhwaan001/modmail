@@ -2,6 +2,11 @@
 A system allowing users to DM a bot which automatically creates a ticket in a server.
 Open sourced and uses the MIT license, allowing you to modify/share the code.
 
+# Notes
+- Only limited support is available. Check [the support section](#support). <br>
+- Messages sent into a ticket system are ignored if they start with `-` (can be changed in index.js) <br>
+- Type `-close` to close a ticket. Channels are not automatically deleted in case you would like to get screenshots of the ticket. There are no current ways to automatically produce a log of the ticket.
+
 # Support
 If you need support, I unfortunately, do not have a Discord server at the time of writing this. However, if you really are stuck, email me on [info@ridhwaan.co.uk](mailto:info@ridhwaan.co.uk) and I may be able to help. <br>
 For bug reports, please create an issue, or open a pull request if you can fix it.
