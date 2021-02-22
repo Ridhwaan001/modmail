@@ -1,0 +1,2 @@
+This folder is required for modmail to function.
+This txt stops github from deleting the folder due to it being empty as I do not want my dev ticket info public.

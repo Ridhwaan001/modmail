@@ -1,0 +1,24 @@
+{
+  "name": "modmail",
+  "version": "1.0.0",
+  "description": "Modmail System created by Ridhwaan001 using Node",
+  "main": "index.js",
+  "dependencies": {
+    "discord.js": "^12.5.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "nodemon index.js --ignore ./tickets/",
+    "start": "node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ridhwaan001/modmail.git"
+  },
+  "author": "Ridhwaan001",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ridhwaan001/modmail/issues"
+  },
+  "homepage": "https://github.com/Ridhwaan001/modmail#readme"
+}
