@@ -6,7 +6,9 @@
   "dependencies": {
     "discord.js": "^12.5.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
   "scripts": {
     "test": "nodemon index.js --ignore ./tickets/",
     "start": "node ."
