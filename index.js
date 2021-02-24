@@ -8,7 +8,7 @@ function quickEmbed(title, desc, authorObject) {
   var randomColour = Math.floor(Math.random() * 16777215).toString(16);
   return new Discord.MessageEmbed()
     .setTitle(title)
-    .setAuthor(authorObject.tag, authorObject.avatarURL)
+    .setAuthor(authorObject.tag, authorObject.avatarURL())
     .setColor(`#${randomColour}`)
     .setDescription(desc);
 }
@@ -108,10 +108,12 @@ client.on("message", (message) => {
             user.send("Your ticket was closed by " + message.author.tag);
             fs.unlinkSync(`./tickets/userinfo/${data.userid}.json`);
             fs.unlinkSync(`./tickets/channelinfo/${message.channel.id}.json`);
-            message.channel.send("You can now safely delete this channel.");
+            message.channel.send(quickEmbed('Ticket Closed', 'It is now safe to delete this channel.', message.author));
           }
         } else {
           var user = client.users.cache.get(data.userid);
+          message.delete()
+          message.channel.send(quickEmbed('Message Delivered', message.content, message.author))
           user.send(
             quickEmbed("Response From Staff", message.content, message.author)
           );
