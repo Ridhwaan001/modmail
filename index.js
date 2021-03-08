@@ -4,13 +4,26 @@ const fs = require("fs");
 const config = require("./config.json");
 client.login(config.token);
 
-function quickEmbed(title, desc, authorObject) {
+function quickEmbed(title, desc, authorObject, message) {
   var randomColour = Math.floor(Math.random() * 16777215).toString(16);
-  return new Discord.MessageEmbed()
-    .setTitle(title)
-    .setAuthor(authorObject.tag, authorObject.avatarURL())
-    .setColor(`#${randomColour}`)
-    .setDescription(desc);
+  if (message.attachments.size > 0) {
+    message.attachments.each((attatch) => {
+      image = attatch.url;
+    });
+    var final = new Discord.MessageEmbed()
+      .setTitle(title)
+      .setAuthor(authorObject.tag, authorObject.avatarURL())
+      .setColor(`#${randomColour}`)
+      .setImage(image)
+      .setDescription(desc);
+  } else {
+    var final = new Discord.MessageEmbed()
+      .setTitle(title)
+      .setAuthor(authorObject.tag, authorObject.avatarURL())
+      .setColor(`#${randomColour}`)
+      .setDescription(desc);
+  }
+  return final;
 }
 
 client.on("ready", () => {
@@ -41,10 +54,15 @@ client.on("message", (message) => {
         if (guild.channels.cache.get(data.channelid) !== undefined) {
           var channel = client.channels.cache.get(data.channelid);
           channel.send(
-            quickEmbed("New Message", message.content, message.author)
+            quickEmbed("New Message", message.content, message.author, message)
           );
           message.author.send(
-            quickEmbed("Message sent!", message.content, message.author)
+            quickEmbed(
+              "Message sent!",
+              message.content,
+              message.author,
+              message
+            )
           );
         } else {
           message.channel.send(
@@ -80,10 +98,20 @@ client.on("message", (message) => {
             );
             channel.send(`**New Ticket**\nAuthor ID: \`${message.author.id}\``);
             channel.send(
-              quickEmbed("New Message", message.content, message.author)
+              quickEmbed(
+                "New Message",
+                message.content,
+                message.author,
+                message
+              )
             );
             message.author.send(
-              quickEmbed("Message sent!", message.content, message.author)
+              quickEmbed(
+                "Message sent!",
+                message.content,
+                message.author,
+                message
+              )
             );
           });
       }
@@ -96,29 +124,49 @@ client.on("message", (message) => {
     if (message.author.id !== client.user.id) {
       if (message.channel.name.toLowerCase().includes("ticket")) {
         var channelId = message.channel.id;
-        if (fs.existsSync('./tickets/channelinfo/' + channelId + '.json')) {
-        var rawData = fs.readFileSync(
-          "./tickets/channelinfo/" + channelId + ".json",
-          "utf8"
-        );
-        var data = JSON.parse(rawData);
-        if (message.content.startsWith("-")) {
-          if (message.content.startsWith("-close")) {
-            var user = client.users.cache.get(data.userid);
-            user.send("Your ticket was closed by " + message.author.tag);
-            fs.unlinkSync(`./tickets/userinfo/${data.userid}.json`);
-            fs.unlinkSync(`./tickets/channelinfo/${message.channel.id}.json`);
-            message.channel.send(quickEmbed('Ticket Closed', 'It is now safe to delete this channel.', message.author));
-          }
-        } else {
-          var user = client.users.cache.get(data.userid);
-          message.delete()
-          message.channel.send(quickEmbed('Message Delivered', message.content, message.author))
-          user.send(
-            quickEmbed("Response From Staff", message.content, message.author)
+        if (fs.existsSync("./tickets/channelinfo/" + channelId + ".json")) {
+          var rawData = fs.readFileSync(
+            "./tickets/channelinfo/" + channelId + ".json",
+            "utf8"
           );
+          var data = JSON.parse(rawData);
+          if (message.content.startsWith("-")) {
+            if (message.content.startsWith("-close")) {
+              var user = client.users.cache.get(data.userid);
+              user.send("Your ticket was closed by " + message.author.tag);
+              fs.unlinkSync(`./tickets/userinfo/${data.userid}.json`);
+              fs.unlinkSync(`./tickets/channelinfo/${message.channel.id}.json`);
+              message.channel.send(
+                quickEmbed(
+                  "Ticket Closed",
+                  "It is now safe to delete this channel.",
+                  message.author,
+                  message
+                )
+              );
+            }
+          } else {
+            var user = client.users.cache.get(data.userid);
+            message.delete();
+            message.channel.send(
+              quickEmbed(
+                "Message Delivered",
+                message.content,
+                message.author,
+                message
+              )
+            );
+            user.send(
+              quickEmbed(
+                "Response From Staff",
+                message.content,
+                message.author,
+                message
+              )
+            );
+          }
         }
-      }}
+      }
     }
   }
 });
