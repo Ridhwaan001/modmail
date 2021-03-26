@@ -1,7 +1,7 @@
 # Modmail
 A system allowing users to DM a bot which automatically creates a ticket in a server.
 Open sourced and uses the MIT license, allowing you to modify/share the code.
-## Note: Giving the bot administrator permissions is recommended, as it has not been tested on what permission the bot requires.
+## Note: Giving the bot administrator permissions is recommended, as it has not been tested on what permissions the bot requires.
 
 # User Manual
 A free PDF version of the Modmail user manual is available with the release.<br>
