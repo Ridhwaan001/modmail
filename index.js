@@ -189,6 +189,8 @@ client.on("message", async message => {
 });
 
 client.on("message", async message => {
+  if (!message.channel.type === 'dm') {
+    if (message.member.hasPermission('MANAGE_MESSAGES')) {
   if (message.content.toLowerCase().startsWith("-new ")) {
     var args = message.content.split(" ");
     args.shift();
@@ -253,5 +255,9 @@ client.on("message", async message => {
         message.channel.send("**An Error Occured.**\n" + "Code: " + error.code);
       });
     }
+  }
+} else {
+  message.channel.send('**No perms**')
+}
   }
 });
