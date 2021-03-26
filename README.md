@@ -2,6 +2,10 @@
 A system allowing users to DM a bot which automatically creates a ticket in a server.
 Open sourced and uses the MIT license, allowing you to modify/share the code.
 
+# User Manual
+A free PDF version of the Modmail user manual is available with the release.<br>
+The latest manual is always included in the source code.
+
 # Notes
 - Only limited support is available. Check [the support section](#support). <br>
 - Messages sent into a ticket system are ignored if they start with `-` (can be changed in index.js) <br>
@@ -24,6 +28,7 @@ Next, CD into the directory, and create `config.json` in the same directory as i
 `token` - Your discord bot token.<br>
 `guild` - Your Discord [Server's ID.](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)<br>
 `category` - ID of the category new tickets are placed in. Permissions of tickets are synced with permissions of the parent category. <br>
+<i>Note: You can now copy, edit then rename the <code>config.json.example</code> file in the root directory</i><br>
 Example JSON:
 ```json
 {

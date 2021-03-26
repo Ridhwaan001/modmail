@@ -119,7 +119,7 @@ client.on("message", (message) => {
   }
 });
 
-client.on("message", (message) => {
+client.on("message", async message => {
   if (message.channel.type !== "dm") {
     if (message.author.id !== client.user.id) {
       if (message.channel.name.toLowerCase().includes("ticket")) {
@@ -133,7 +133,13 @@ client.on("message", (message) => {
           if (message.content.startsWith("-")) {
             if (message.content.startsWith("-close")) {
               var user = client.users.cache.get(data.userid);
-              user.send("Your ticket was closed by " + message.author.tag);
+              user
+                .send("Your ticket was closed by " + message.author.tag)
+                .catch((error) => {
+                  message.channel.send(
+                    "**An Error Occured.**\n" + "Code: " + error.code
+                  );
+                });
               fs.unlinkSync(`./tickets/userinfo/${data.userid}.json`);
               fs.unlinkSync(`./tickets/channelinfo/${message.channel.id}.json`);
               message.channel.send(
@@ -146,7 +152,7 @@ client.on("message", (message) => {
               );
             }
           } else {
-            var user = client.users.cache.get(data.userid);
+            var user = await client.users.fetch(data.userid);
             message.delete();
             message.channel.send(
               quickEmbed(
@@ -156,17 +162,96 @@ client.on("message", (message) => {
                 message
               )
             );
-            user.send(
-              quickEmbed(
-                "Response From Staff",
-                message.content,
-                message.author,
-                message
+            user
+              .send(
+                quickEmbed(
+                  "Response From Staff",
+                  message.content,
+                  message.author,
+                  message
+                )
               )
-            );
+              .catch((error) => {
+                message.channel.send(
+                  quickEmbed(
+                    "An error occured with this ticket",
+                    "Error Code: " + error.code,
+                    message.author,
+                    message
+                  )
+                );
+              });
           }
         }
       }
+    }
+  }
+});
+
+client.on("message", async message => {
+  if (message.content.toLowerCase().startsWith("-new ")) {
+    var args = message.content.split(" ");
+    args.shift();
+    console.log(args[0]);
+    var user = ""
+    if (args[0].startsWith("<@") && args[0].endsWith(">")) {
+     var user = message.mentions.users.first();
+   } else {
+      var user = await client.users.fetch(args[0])
+      console.log(user);
+    }
+    console.log(user);
+    if (user) {
+      if (fs.existsSync("./tickets/userinfo/" + user.id + ".json")) {
+        var raw = fs.readFileSync(
+          "./tickets/userinfo/" + user.id + ".json",
+          "utf8"
+        );
+        var data = JSON.parse(raw);
+        var guild = client.guilds.cache.get(config.guild);
+        if (guild.channels.cache.get(data.channelid) !== undefined) {
+          var channel = client.channels.cache.get(data.channelid);
+          message.channel.send("**Ticket exists.**" + `\n<#${channel.id}>`);
+        } else {
+          message.channel.send("Invalid Ticket - Deleting files");
+          fs.unlinkSync(`./tickets/userinfo/${user.id}.json`);
+          fs.unlinkSync(`./tickets/channelinfo/${data.channelid}.json`);
+        }
+      } else {
+        console.log("ticket not found - Creating");
+        var guild = client.guilds.cache.get(config.guild);
+        guild.channels
+          .create("Ticket - " + user.tag, {
+            parent: config.category,
+            type: "text",
+          })
+          .then((channel) => {
+            var userInfo = {
+              channelID: channel.id,
+            };
+            var channelInfo = {
+              userID: user.id,
+            };
+            console.log(userInfo);
+            console.log(channelInfo);
+            fs.writeFileSync(
+              "./tickets/userinfo/" + user.id + ".json",
+              `{"channelid" : "${channel.id}"}`
+            );
+            fs.writeFileSync(
+              "./tickets/channelinfo/" + channel.id + ".json",
+              `{"userid" : "${user.id}"}`
+            );
+            channel.send('Ticket Created!\nUser: ' + user.id + '\nMessages with `-` at the start are ignored. Use `-close` to close tickets.')
+            user.send(`${message.author.tag} from ${message.guild.name} created a ticket in this DM.`).catch((error) => {
+              console.log(error)
+            });
+          });
+      }
+    } else {
+      message.channel.send("User not found").catch((error) => {
+        message.channel.send("**An Error Occured.**\n" + "Code: " + error.code);
+      });
     }
   }
 });
