@@ -189,9 +189,9 @@ client.on("message", async message => {
 });
 
 client.on("message", async message => {
-  if (!message.channel.type === 'dm') {
+  if (message.channel.type !== 'dm') {
+    if (message.content.toLowerCase().startsWith("-new ")) {
     if (message.member.hasPermission('MANAGE_MESSAGES')) {
-  if (message.content.toLowerCase().startsWith("-new ")) {
     var args = message.content.split(" ");
     args.shift();
     console.log(args[0]);
@@ -255,9 +255,9 @@ client.on("message", async message => {
         message.channel.send("**An Error Occured.**\n" + "Code: " + error.code);
       });
     }
+  } else {
+    message.reply('**You must have the `MANAGE_MESSAGES` permission to use this command!**')
   }
-} else {
-  message.channel.send('**No perms**')
-}
+} 
   }
 });
