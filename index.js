@@ -40,7 +40,7 @@ client.on("message", (message) => {
   }
 });
 
-client.on("message", (message) => {
+client.on("message", async message => {
   if (message.channel.type === "dm") {
     if (message.author.id !== client.user.id) {
       console.log("DM received from " + message.author.tag);
@@ -53,11 +53,11 @@ client.on("message", (message) => {
         var guild = client.guilds.cache.get(config.guild);
         if (guild.channels.cache.get(data.channelid) !== undefined) {
           var channel = client.channels.cache.get(data.channelid);
-          channel.send(
-            quickEmbed("New Message", message.content, message.author, message)
+          await channel.send(
+            await quickEmbed("New Message", message.content, message.author, message)
           );
-          message.author.send(
-            quickEmbed(
+          await message.author.send(
+           await quickEmbed(
               "Message sent!",
               message.content,
               message.author,
@@ -119,7 +119,7 @@ client.on("message", (message) => {
   }
 });
 
-client.on("message", async message => {
+client.on("message", async (message) => {
   if (message.channel.type !== "dm") {
     if (message.author.id !== client.user.id) {
       if (message.channel.name.toLowerCase().includes("ticket")) {
@@ -153,18 +153,17 @@ client.on("message", async message => {
             }
           } else {
             var user = await client.users.fetch(data.userid);
-            message.delete();
-            message.channel.send(
-              quickEmbed(
+            await message.channel.send(
+              await quickEmbed(
                 "Message Delivered",
                 message.content,
                 message.author,
                 message
               )
             );
-            user
+            await user
               .send(
-                quickEmbed(
+                await quickEmbed(
                   "Response From Staff",
                   message.content,
                   message.author,
@@ -181,6 +180,7 @@ client.on("message", async message => {
                   )
                 );
               });
+            message.delete();
           }
         }
       }
@@ -188,76 +188,88 @@ client.on("message", async message => {
   }
 });
 
-client.on("message", async message => {
-  if (message.channel.type !== 'dm') {
+client.on("message", async (message) => {
+  if (message.channel.type !== "dm") {
     if (message.content.toLowerCase().startsWith("-new ")) {
-    if (message.member.hasPermission('MANAGE_MESSAGES')) {
-    var args = message.content.split(" ");
-    args.shift();
-    console.log(args[0]);
-    var user = ""
-    if (args[0].startsWith("<@") && args[0].endsWith(">")) {
-     var user = message.mentions.users.first();
-   } else {
-      var user = await client.users.fetch(args[0])
-      console.log(user);
-    }
-    console.log(user);
-    if (user) {
-      if (fs.existsSync("./tickets/userinfo/" + user.id + ".json")) {
-        var raw = fs.readFileSync(
-          "./tickets/userinfo/" + user.id + ".json",
-          "utf8"
-        );
-        var data = JSON.parse(raw);
-        var guild = client.guilds.cache.get(config.guild);
-        if (guild.channels.cache.get(data.channelid) !== undefined) {
-          var channel = client.channels.cache.get(data.channelid);
-          message.channel.send("**Ticket exists.**" + `\n<#${channel.id}>`);
+      if (message.member.hasPermission("MANAGE_MESSAGES")) {
+        var args = message.content.split(" ");
+        args.shift();
+        console.log(args[0]);
+        var user = "";
+        if (args[0].startsWith("<@") && args[0].endsWith(">")) {
+          var user = message.mentions.users.first();
         } else {
-          message.channel.send("Invalid Ticket - Deleting files");
-          fs.unlinkSync(`./tickets/userinfo/${user.id}.json`);
-          fs.unlinkSync(`./tickets/channelinfo/${data.channelid}.json`);
+          var user = await client.users.fetch(args[0]);
+          console.log(user);
+        }
+        console.log(user);
+        if (user) {
+          if (fs.existsSync("./tickets/userinfo/" + user.id + ".json")) {
+            var raw = fs.readFileSync(
+              "./tickets/userinfo/" + user.id + ".json",
+              "utf8"
+            );
+            var data = JSON.parse(raw);
+            var guild = client.guilds.cache.get(config.guild);
+            if (guild.channels.cache.get(data.channelid) !== undefined) {
+              var channel = client.channels.cache.get(data.channelid);
+              message.channel.send("**Ticket exists.**" + `\n<#${channel.id}>`);
+            } else {
+              message.channel.send("Invalid Ticket - Deleting files");
+              fs.unlinkSync(`./tickets/userinfo/${user.id}.json`);
+              fs.unlinkSync(`./tickets/channelinfo/${data.channelid}.json`);
+            }
+          } else {
+            console.log("ticket not found - Creating");
+            var guild = client.guilds.cache.get(config.guild);
+            guild.channels
+              .create("Ticket - " + user.tag, {
+                parent: config.category,
+                type: "text",
+              })
+              .then((channel) => {
+                var userInfo = {
+                  channelID: channel.id,
+                };
+                var channelInfo = {
+                  userID: user.id,
+                };
+                console.log(userInfo);
+                console.log(channelInfo);
+                fs.writeFileSync(
+                  "./tickets/userinfo/" + user.id + ".json",
+                  `{"channelid" : "${channel.id}"}`
+                );
+                fs.writeFileSync(
+                  "./tickets/channelinfo/" + channel.id + ".json",
+                  `{"userid" : "${user.id}"}`
+                );
+                channel.send(
+                  "Ticket Created!\nUser: " +
+                    user.id +
+                    "\nMessages with `-` at the start are ignored. Use `-close` to close tickets."
+                );
+                user
+                  .send(
+                    `${message.author.tag} from ${message.guild.name} created a ticket in this DM.`
+                  )
+                  .catch((error) => {
+                    console.log(error);
+                  });
+              });
+          }
+        } else {
+          message.channel.send("User not found").catch((error) => {
+            message.channel.send(
+              "**An Error Occured.**\n" + "Code: " + error.code
+            );
+          });
         }
       } else {
-        console.log("ticket not found - Creating");
-        var guild = client.guilds.cache.get(config.guild);
-        guild.channels
-          .create("Ticket - " + user.tag, {
-            parent: config.category,
-            type: "text",
-          })
-          .then((channel) => {
-            var userInfo = {
-              channelID: channel.id,
-            };
-            var channelInfo = {
-              userID: user.id,
-            };
-            console.log(userInfo);
-            console.log(channelInfo);
-            fs.writeFileSync(
-              "./tickets/userinfo/" + user.id + ".json",
-              `{"channelid" : "${channel.id}"}`
-            );
-            fs.writeFileSync(
-              "./tickets/channelinfo/" + channel.id + ".json",
-              `{"userid" : "${user.id}"}`
-            );
-            channel.send('Ticket Created!\nUser: ' + user.id + '\nMessages with `-` at the start are ignored. Use `-close` to close tickets.')
-            user.send(`${message.author.tag} from ${message.guild.name} created a ticket in this DM.`).catch((error) => {
-              console.log(error)
-            });
-          });
+        message.reply(
+          "**You must have the `MANAGE_MESSAGES` permission to use this command!**"
+        );
       }
-    } else {
-      message.channel.send("User not found").catch((error) => {
-        message.channel.send("**An Error Occured.**\n" + "Code: " + error.code);
-      });
     }
-  } else {
-    message.reply('**You must have the `MANAGE_MESSAGES` permission to use this command!**')
-  }
-} 
   }
 });
