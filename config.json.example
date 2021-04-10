@@ -1,7 +1,9 @@
 {
-  "token": "token",
-  "presence": "your DMs",
-  "presencetype": "WATCHING",
-  "guild": "0123456789",
-  "category": "0123456789"
+  "token": "token", // string (remove comment before startup)
+  "presence": "your DMs", // string (remove comment before startup)
+  "presencetype": "WATCHING", // string (remove comment before startup)
+  "guild": "0123456789", // string (remove comment before startup)
+  "category": "0123456789", // string (remove comment before startup)
+  "autoResponderEnabled": true, // this variable should be a boolean + remove this comment before startup 
+  "autoResponse": "Thank you for contacting support. Please be patient and staff will be with you shortly." // string (remove comment before startup)
 }

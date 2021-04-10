@@ -40,7 +40,7 @@ client.on("message", (message) => {
   }
 });
 
-client.on("message", async message => {
+client.on("message", async (message) => {
   if (message.channel.type === "dm") {
     if (message.author.id !== client.user.id) {
       console.log("DM received from " + message.author.tag);
@@ -54,16 +54,22 @@ client.on("message", async message => {
         if (guild.channels.cache.get(data.channelid) !== undefined) {
           var channel = client.channels.cache.get(data.channelid);
           await channel.send(
-            await quickEmbed("New Message", message.content, message.author, message)
+            await quickEmbed(
+              "New Message",
+              message.content,
+              message.author,
+              message
+            )
           );
           await message.author.send(
-           await quickEmbed(
+            await quickEmbed(
               "Message sent!",
               message.content,
               message.author,
               message
             )
           );
+          
         } else {
           message.channel.send(
             "**An error occured trying access your ticket.**\nPlease try again.\n\n**Error:**`Channel not found`"
@@ -79,7 +85,7 @@ client.on("message", async message => {
             parent: config.category,
             type: "text",
           })
-          .then((channel) => {
+          .then( async channel => {
             var userInfo = {
               channelID: channel.id,
             };
@@ -96,23 +102,37 @@ client.on("message", async message => {
               "./tickets/channelinfo/" + channel.id + ".json",
               `{"userid" : "${message.author.id}"}`
             );
-            channel.send(`**New Ticket**\nAuthor ID: \`${message.author.id}\``);
-            channel.send(
-              quickEmbed(
+            if (
+              config.autoResponderEnabled === true &&
+              config.autoResponse !== undefined
+            ) {
+              await message.author.send(
+                await quickEmbed(
+                  "Ticket Created",
+                  "**Automated Response:**\n" + config.autoResponse,
+                  client.user,
+                  message
+                )
+              );
+            }
+            await channel.send(`**New Ticket**\nAuthor ID: \`${message.author.id}\``);
+            await channel.send(
+              await quickEmbed(
                 "New Message",
                 message.content,
                 message.author,
                 message
               )
             );
-            message.author.send(
-              quickEmbed(
+            await message.author.send(
+              await quickEmbed(
                 "Message sent!",
                 message.content,
                 message.author,
                 message
               )
             );
+            
           });
       }
     }
