@@ -103,5 +103,5 @@ dist
 # TernJS port file
 .tern-port
 ./config.json
-./tickets/
+.tickets/
 config.json

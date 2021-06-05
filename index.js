@@ -1,6 +1,8 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
+const disbut = require("discord.js-buttons")(client);
 const fs = require("fs");
+const { message } = require("noblox.js");
 const config = require("./config.json");
 client.login(config.token);
 
@@ -69,7 +71,10 @@ client.on("message", async (message) => {
               message
             )
           );
-          
+          fs.appendFileSync(
+            `./tickets/logStorage/${message.author.id}.txt`,
+            `${Date()} - ${message.author.tag}: ${message.content}\n`
+          );
         } else {
           message.channel.send(
             "**An error occured trying access your ticket.**\nPlease try again.\n\n**Error:**`Channel not found`"
@@ -85,7 +90,7 @@ client.on("message", async (message) => {
             parent: config.category,
             type: "text",
           })
-          .then( async channel => {
+          .then(async (channel) => {
             var userInfo = {
               channelID: channel.id,
             };
@@ -102,6 +107,14 @@ client.on("message", async (message) => {
               "./tickets/channelinfo/" + channel.id + ".json",
               `{"userid" : "${message.author.id}"}`
             );
+            fs.appendFileSync(
+              `./tickets/logStorage/${message.author.id}.txt`,
+              `${message.author.tag} created a ticket - ${Date()}\n`
+            );
+            fs.appendFileSync(
+              `./tickets/logStorage/${message.author.id}.txt`,
+              `${Date()} - ${message.author.tag}: ${message.content}\n`
+            );
             if (
               config.autoResponderEnabled === true &&
               config.autoResponse !== undefined
@@ -114,8 +127,14 @@ client.on("message", async (message) => {
                   message
                 )
               );
+              await fs.appendFileSync(
+                `./tickets/logStorage/${message.author.id}.txt`,
+                `${Date()} - Automated Message Sent\n`
+              );
             }
-            await channel.send(`**New Ticket**\nAuthor ID: \`${message.author.id}\``);
+            await channel.send(
+              `**New Ticket**\nUser: ${message.author.id} / ${message.author.tag}\nMessages starting with \`-\` are ignored. Use \`-close\` to close tickets.`
+            );
             await channel.send(
               await quickEmbed(
                 "New Message",
@@ -132,7 +151,6 @@ client.on("message", async (message) => {
                 message
               )
             );
-            
           });
       }
     }
@@ -161,15 +179,32 @@ client.on("message", async (message) => {
                   );
                 });
               fs.unlinkSync(`./tickets/userinfo/${data.userid}.json`);
-              fs.unlinkSync(`./tickets/channelinfo/${message.channel.id}.json`);
-              message.channel.send(
-                quickEmbed(
-                  "Ticket Closed",
-                  "It is now safe to delete this channel.",
-                  message.author,
-                  message
-                )
+              await fs.appendFileSync(
+                `./tickets/logStorage/${message.author.id}.txt`,
+                `${Date()} - ${message.author.tag} closed the ticket.\n`
               );
+              fs.unlinkSync(`./tickets/channelinfo/${message.channel.id}.json`);
+              var deleteButton = new disbut.MessageButton()
+                .setStyle("red")
+                .setLabel("Delete Ticket Channel")
+                .setID("deleteChannel");
+              await message.channel
+                .send("", {
+                  files: [`./tickets/logStorage/${user.id}.txt`],
+                  embed: quickEmbed(
+                    "Ticket Closed",
+                    "It is now safe to delete this channel.\nFor a full log, check the file uploaded.",
+                    message.author,
+                    message
+                  ),
+                  buttons: [deleteButton],
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
+              if (fs.existsSync(`./tickets/logStorage/${user.id}.txt`)) {
+                fs.unlinkSync(`./tickets/logStorage/${user.id}.txt`);
+              }
             }
           } else {
             var user = await client.users.fetch(data.userid);
@@ -180,6 +215,10 @@ client.on("message", async (message) => {
                 message.author,
                 message
               )
+            );
+            fs.appendFileSync(
+              `./tickets/logStorage/${message.author.id}.txt`,
+              `${Date()} - ${message.author.tag}: ${message.content}\n`
             );
             await user
               .send(
@@ -238,6 +277,9 @@ client.on("message", async (message) => {
               message.channel.send("Invalid Ticket - Deleting files");
               fs.unlinkSync(`./tickets/userinfo/${user.id}.json`);
               fs.unlinkSync(`./tickets/channelinfo/${data.channelid}.json`);
+              if (fs.existsSync(`./tickets/logStorage/${user.id}.txt`)) {
+                fs.unlinkSync(`./tickets/logStorage/${user.id}.txt`);
+              }
             }
           } else {
             console.log("ticket not found - Creating");
@@ -267,7 +309,14 @@ client.on("message", async (message) => {
                 channel.send(
                   "Ticket Created!\nUser: " +
                     user.id +
+                    ` / ${user.tag}` +
                     "\nMessages with `-` at the start are ignored. Use `-close` to close tickets."
+                );
+                fs.appendFileSync(
+                  `./tickets/logStorage/${user.id}.txt`,
+                  `${Date()} - ${message.author.tag} created a ticket with ${
+                    user.tag
+                  }\n`
                 );
                 user
                   .send(
@@ -290,6 +339,22 @@ client.on("message", async (message) => {
           "**You must have the `MANAGE_MESSAGES` permission to use this command!**"
         );
       }
+    }
+  }
+});
+
+client.on("clickButton", async (button) => {
+  if (button.id === "deleteChannel") {
+    try {
+      if (button.clicker.member.hasPermission("MANAGE_CHANNEL")) {
+        button.channel.delete();
+      } else {
+        button.channel.send(
+          `${button.clicker.user.tag} does not have permission to delete this channel. (\`MANAGE_CHANNEL\` is required.)`
+        );
+      }
+    } catch (error) {
+      button.channel.reply(error.toString());
     }
   }
 });
