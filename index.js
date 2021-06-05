@@ -2,7 +2,6 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 const disbut = require("discord.js-buttons")(client);
 const fs = require("fs");
-const { message } = require("noblox.js");
 const config = require("./config.json");
 client.login(config.token);
 
