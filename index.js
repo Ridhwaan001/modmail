@@ -179,7 +179,7 @@ client.on("message", async (message) => {
                 });
               fs.unlinkSync(`./tickets/userinfo/${data.userid}.json`);
               await fs.appendFileSync(
-                `./tickets/logStorage/${message.author.id}.txt`,
+                `./tickets/logStorage/${user.id}.txt`,
                 `${Date()} - ${message.author.tag} closed the ticket.\n`
               );
               fs.unlinkSync(`./tickets/channelinfo/${message.channel.id}.json`);
