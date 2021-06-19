@@ -216,7 +216,7 @@ client.on("message", async (message) => {
               )
             );
             fs.appendFileSync(
-              `./tickets/logStorage/${message.author.id}.txt`,
+              `./tickets/logStorage/${user.id}.txt`,
               `${Date()} - ${message.author.tag}: ${message.content}\n`
             );
             await user
